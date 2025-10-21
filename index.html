@@ -187,6 +187,7 @@
             display: inline-block;
             margin: 10px 0;
             max-width: 100%;
+            cursor: default;
         }
 
         .editor-image {
@@ -195,6 +196,8 @@
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             display: block;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .resize-handle {
@@ -209,10 +212,16 @@
             opacity: 0;
             transition: opacity 0.2s;
             border: 2px solid white;
+            z-index: 10;
         }
 
-        .image-container:hover .resize-handle {
+        .image-container:hover .resize-handle,
+        .image-container.resizing .resize-handle {
             opacity: 1;
+        }
+
+        .image-container.resizing {
+            cursor: nwse-resize;
         }
 
         /* Audio player */
@@ -220,15 +229,6 @@
             width: 100%;
             margin: 10px 0;
             border-radius: 8px;
-        }
-
-        /* GPS coordinates */
-        .gps-coordinates {
-            background: #f0f0f0;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin: 5px 0;
-            border-left: 4px solid var(--primary-color);
         }
 
         /* Modals */
@@ -435,19 +435,22 @@
         
         <!-- Размер и шрифт -->
         <select class="toolbar-select" id="fontSizeSelect">
-            <option value="12px">12</option>
-            <option value="14px" selected>14</option>
-            <option value="16px">16</option>
-            <option value="18px">18</option>
-            <option value="20px">20</option>
-            <option value="24px">24</option>
+            <option value="1">8px</option>
+            <option value="2">10px</option>
+            <option value="3" selected>12px</option>
+            <option value="4">14px</option>
+            <option value="5">16px</option>
+            <option value="6">18px</option>
+            <option value="7">20px</option>
         </select>
         
         <select class="toolbar-select" id="fontFamilySelect">
             <option value="Arial">Arial</option>
             <option value="Helvetica" selected>Helvetica</option>
             <option value="Georgia">Georgia</option>
-            <option value="Times New Roman">Times</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Verdana">Verdana</option>
         </select>
     </div>
 
@@ -495,9 +498,6 @@
                     </button>
                     <button class="btn btn-secondary" id="insertAudioBtn" style="justify-content: flex-start; text-align: left;">
                         <i class="fas fa-music" style="margin-right: 10px;"></i> Вставить аудио
-                    </button>
-                    <button class="btn btn-secondary" id="insertGpsBtn" style="justify-content: flex-start; text-align: left;">
-                        <i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Вставить GPS координаты
                     </button>
                     
                     <!-- Поделиться -->
@@ -604,39 +604,6 @@
         </div>
     </div>
 
-    <!-- Insert GPS Modal -->
-    <div class="modal" id="insertGpsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Вставить GPS координаты</div>
-                <button class="modal-close" id="closeGpsModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Широта:</label>
-                    <input type="text" id="gpsLatInput" class="form-input" placeholder="55.7558">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Долгота:</label>
-                    <input type="text" id="gpsLngInput" class="form-input" placeholder="37.6173">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Описание (необязательно):</label>
-                    <input type="text" id="gpsDescInput" class="form-input" placeholder="Москва, Красная площадь">
-                </div>
-                <button class="btn btn-secondary" id="getCurrentLocationBtn" style="width: 100%; margin-top: 10px;">
-                    <i class="fas fa-location-arrow" style="margin-right: 8px;"></i>Текущее местоположение
-                </button>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" id="cancelGpsBtn">Отмена</button>
-                <button class="btn btn-primary" id="insertGpsBtnModal">Вставить</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
@@ -649,7 +616,6 @@
             const settingsModal = document.getElementById('settingsModal');
             const insertImageModal = document.getElementById('insertImageModal');
             const insertAudioModal = document.getElementById('insertAudioModal');
-            const insertGpsModal = document.getElementById('insertGpsModal');
             const toast = document.getElementById('toast');
             
             // Toolbar buttons
@@ -666,14 +632,13 @@
             const textColorPicker = document.getElementById('textColorPicker');
             const highlightColorPicker = document.getElementById('highlightColorPicker');
             
-            // Menu buttons - ВСЕ функции вернул!
+            // Menu buttons
             const newDocumentBtn = document.getElementById('newDocumentBtn');
             const saveFileBtn = document.getElementById('saveFileBtn');
             const exportPdfBtn = document.getElementById('exportPdfBtn');
             const printBtn = document.getElementById('printBtn');
             const insertImageBtn = document.getElementById('insertImageBtn');
             const insertAudioBtn = document.getElementById('insertAudioBtn');
-            const insertGpsBtn = document.getElementById('insertGpsBtn');
             const shareBtn = document.getElementById('shareBtn');
             const sendBtn = document.getElementById('sendBtn');
             const wordCountBtn = document.getElementById('wordCountBtn');
@@ -689,7 +654,6 @@
             const closeMenuModal = document.getElementById('closeMenuModal');
             const closeImageModal = document.getElementById('closeImageModal');
             const closeAudioModal = document.getElementById('closeAudioModal');
-            const closeGpsModal = document.getElementById('closeGpsModal');
             
             // Image modal elements
             const imageFileInput = document.getElementById('imageFileInput');
@@ -703,14 +667,6 @@
             const audioUrlInput = document.getElementById('audioUrlInput');
             const cancelAudioBtn = document.getElementById('cancelAudioBtn');
             const insertAudioBtnModal = document.getElementById('insertAudioBtnModal');
-            
-            // GPS modal elements
-            const gpsLatInput = document.getElementById('gpsLatInput');
-            const gpsLngInput = document.getElementById('gpsLngInput');
-            const gpsDescInput = document.getElementById('gpsDescInput');
-            const cancelGpsBtn = document.getElementById('cancelGpsBtn');
-            const insertGpsBtnModal = document.getElementById('insertGpsBtnModal');
-            const getCurrentLocationBtn = document.getElementById('getCurrentLocationBtn');
             
             // State
             let currentDocument = {
@@ -771,14 +727,13 @@
                     }
                 });
                 
-                // Все функции меню - ВЕРНУЛ!
+                // Menu functions
                 newDocumentBtn.addEventListener('click', createNewDocument);
                 saveFileBtn.addEventListener('click', saveToFile);
                 exportPdfBtn.addEventListener('click', exportToPdf);
                 printBtn.addEventListener('click', printDocument);
                 insertImageBtn.addEventListener('click', () => insertImageModal.classList.add('active'));
                 insertAudioBtn.addEventListener('click', () => insertAudioModal.classList.add('active'));
-                insertGpsBtn.addEventListener('click', () => insertGpsModal.classList.add('active'));
                 shareBtn.addEventListener('click', shareDocument);
                 sendBtn.addEventListener('click', sendDocument);
                 wordCountBtn.addEventListener('click', showWordCount);
@@ -807,23 +762,17 @@
                 // Font size
                 fontSizeSelect.addEventListener('change', () => {
                     const size = fontSizeSelect.value;
-                    execCommand('fontSize', false, '7');
-                    document.execCommand('styleWithCSS', false, true);
-                    document.execCommand('fontSize', false, '1');
-                    const fontElements = document.getElementsByTagName('font');
-                    for (let i = 0, len = fontElements.length; i < len; i++) {
-                        if (fontElements[i].size === '1') {
-                            fontElements[i].removeAttribute('size');
-                            fontElements[i].style.fontSize = size;
-                        }
-                    }
+                    execCommand('fontSize', false, size);
                     updateCurrentDocument();
                 });
                 
-                // Font family
+                // Font family - ИСПРАВЛЕННАЯ ФУНКЦИОНАЛЬНОСТЬ
                 fontFamilySelect.addEventListener('change', () => {
                     const fontFamily = fontFamilySelect.value;
+                    // Используем styleWithCSS для лучшей совместимости
+                    document.execCommand('styleWithCSS', false, true);
                     execCommand('fontName', false, fontFamily);
+                    updateCurrentDocument();
                 });
                 
                 // Text color
@@ -858,14 +807,14 @@
                 cancelAudioBtn.addEventListener('click', () => insertAudioModal.classList.remove('active'));
                 insertAudioBtnModal.addEventListener('click', insertAudioFromModal);
                 
-                // GPS modal
-                closeGpsModal.addEventListener('click', () => insertGpsModal.classList.remove('active'));
-                cancelGpsBtn.addEventListener('click', () => insertGpsModal.classList.remove('active'));
-                insertGpsBtnModal.addEventListener('click', insertGpsFromModal);
-                getCurrentLocationBtn.addEventListener('click', getCurrentLocation);
-                
                 // Editor events
                 editor.addEventListener('input', updateCurrentDocument);
+                
+                // Global event listeners for image resizing
+                document.addEventListener('mousemove', handleResize);
+                document.addEventListener('mouseup', stopResize);
+                document.addEventListener('touchmove', handleResize);
+                document.addEventListener('touchend', stopResize);
             }
             
             // Обработчик клика по словам
@@ -933,7 +882,7 @@
                 return null;
             }
             
-            // Функции меню - ВСЕ ВЕРНУЛ!
+            // Menu functions
             function createNewDocument() {
                 if (confirm('Создать новый документ? Несохраненные изменения будут потеряны.')) {
                     editor.innerHTML = '<p>Новый документ</p>';
@@ -966,33 +915,58 @@
             function exportToPdf() {
                 showToast('Создание PDF...');
                 
-                html2canvas(editor).then(canvas => {
+                // Создаем временный элемент для экспорта с улучшенными стилями
+                const exportElement = document.createElement('div');
+                exportElement.style.width = '210mm';
+                exportElement.style.padding = '20mm';
+                exportElement.style.fontFamily = 'Arial, sans-serif';
+                exportElement.style.fontSize = '12pt';
+                exportElement.style.lineHeight = '1.4';
+                exportElement.style.background = 'white';
+                
+                // Копируем содержимое редактора
+                exportElement.innerHTML = editor.innerHTML;
+                
+                // Убираем интерактивные элементы
+                exportElement.querySelectorAll('.resize-handle').forEach(el => el.remove());
+                exportElement.querySelectorAll('audio').forEach(el => el.remove());
+                
+                // Добавляем заголовок
+                const title = document.createElement('h1');
+                title.textContent = currentDocument.title;
+                title.style.textAlign = 'center';
+                title.style.marginBottom = '20px';
+                title.style.fontSize = '18pt';
+                exportElement.insertBefore(title, exportElement.firstChild);
+                
+                document.body.appendChild(exportElement);
+                
+                html2canvas(exportElement, {
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    width: exportElement.scrollWidth,
+                    height: exportElement.scrollHeight
+                }).then(canvas => {
                     const imgData = canvas.toDataURL('image/png');
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     
-                    const imgWidth = 190;
-                    const pageHeight = 280;
+                    const imgWidth = 210;
                     const imgHeight = canvas.height * imgWidth / canvas.width;
-                    let heightLeft = imgHeight;
-                    let position = 10;
                     
-                    pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                    heightLeft -= pageHeight;
-                    
-                    while (heightLeft >= 0) {
-                        position = heightLeft - imgHeight + 10;
-                        pdf.addPage();
-                        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-                        heightLeft -= pageHeight;
-                    }
-                    
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
                     pdf.save(currentDocument.title + '.pdf');
+                    
+                    // Удаляем временный элемент
+                    document.body.removeChild(exportElement);
+                    
                     showToast('PDF успешно создан');
                     menuModal.classList.remove('active');
                 }).catch(error => {
                     console.error('Error generating PDF:', error);
                     showToast('Ошибка при создании PDF');
+                    document.body.removeChild(exportElement);
                 });
             }
             
@@ -1102,6 +1076,7 @@
                     case 'original':
                     default:
                         img.style.maxWidth = '100%';
+                        img.style.width = 'auto';
                         break;
                 }
                 
@@ -1155,57 +1130,6 @@
                 audioUrlInput.value = '';
             }
             
-            function insertGpsFromModal() {
-                const lat = gpsLatInput.value.trim();
-                const lng = gpsLngInput.value.trim();
-                const desc = gpsDescInput.value.trim();
-                
-                if (!lat || !lng) {
-                    showToast('Введите координаты');
-                    return;
-                }
-                
-                const gpsElement = document.createElement('div');
-                gpsElement.className = 'gps-coordinates';
-                gpsElement.innerHTML = `
-                    <strong>📍 GPS координаты</strong><br>
-                    ${desc ? desc + '<br>' : ''}
-                    Широта: ${lat}<br>
-                    Долгота: ${lng}<br>
-                    <small><a href="https://maps.google.com/?q=${lat},${lng}" target="_blank">Открыть в картах</a></small>
-                `;
-                
-                insertAtCursor(gpsElement);
-                updateCurrentDocument();
-                insertGpsModal.classList.remove('active');
-                showToast('GPS координаты вставлены');
-                
-                // Reset form
-                gpsLatInput.value = '';
-                gpsLngInput.value = '';
-                gpsDescInput.value = '';
-            }
-            
-            function getCurrentLocation() {
-                if (!navigator.geolocation) {
-                    showToast('Геолокация не поддерживается');
-                    return;
-                }
-                
-                showToast('Определение местоположения...');
-                
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        gpsLatInput.value = position.coords.latitude.toFixed(6);
-                        gpsLngInput.value = position.coords.longitude.toFixed(6);
-                        showToast('Местоположение определено');
-                    },
-                    (error) => {
-                        showToast('Ошибка определения местоположения');
-                    }
-                );
-            }
-            
             function insertAtCursor(element) {
                 const selection = window.getSelection();
                 if (selection.rangeCount > 0) {
@@ -1237,48 +1161,76 @@
             }
             
             function initResizeHandler(container, img, handle) {
-                handle.addEventListener('mousedown', startResize);
-                handle.addEventListener('touchstart', startResize);
-                
                 function startResize(e) {
                     e.preventDefault();
+                    e.stopPropagation();
+                    
                     isResizing = true;
-                    currentResizeElement = img;
+                    currentResizeElement = {container, img};
                     startX = e.clientX || e.touches[0].clientX;
                     startY = e.clientY || e.touches[0].clientY;
                     startWidth = parseInt(getComputedStyle(img).width, 10);
                     startHeight = parseInt(getComputedStyle(img).height, 10);
                     
-                    document.addEventListener('mousemove', resize);
-                    document.addEventListener('touchmove', resize);
-                    document.addEventListener('mouseup', stopResize);
-                    document.addEventListener('touchend', stopResize);
+                    container.classList.add('resizing');
+                    
+                    document.body.style.userSelect = 'none';
+                    document.body.style.webkitUserSelect = 'none';
                 }
                 
-                function resize(e) {
-                    if (!isResizing) return;
-                    
-                    const currentX = e.clientX || e.touches[0].clientX;
-                    const currentY = e.clientY || e.touches[0].clientY;
-                    
-                    const width = startWidth + (currentX - startX);
-                    const height = startHeight + (currentY - startY);
-                    
-                    if (width > 50 && width < editor.offsetWidth) {
-                        img.style.width = width + 'px';
-                        img.style.height = 'auto';
-                    }
+                handle.addEventListener('mousedown', startResize);
+                handle.addEventListener('touchstart', startResize, { passive: false });
+            }
+            
+            function handleResize(e) {
+                if (!isResizing || !currentResizeElement) return;
+                
+                e.preventDefault();
+                
+                const { container, img } = currentResizeElement;
+                const currentX = e.clientX || (e.touches && e.touches[0].clientX) || startX;
+                const currentY = e.clientY || (e.touches && e.touches[0].clientY) || startY;
+                
+                const deltaX = currentX - startX;
+                const deltaY = currentY - startY;
+                
+                // Calculate new dimensions maintaining aspect ratio
+                const aspectRatio = startWidth / startHeight;
+                let newWidth = startWidth + deltaX;
+                let newHeight = startHeight + deltaY;
+                
+                // Maintain aspect ratio
+                if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                    newHeight = newWidth / aspectRatio;
+                } else {
+                    newWidth = newHeight * aspectRatio;
                 }
                 
-                function stopResize() {
-                    isResizing = false;
+                // Apply minimum and maximum size constraints
+                newWidth = Math.max(50, Math.min(newWidth, editor.offsetWidth));
+                newHeight = Math.max(50, Math.min(newHeight, editor.offsetHeight));
+                
+                img.style.width = newWidth + 'px';
+                img.style.height = newHeight + 'px';
+                
+                // Remove any max-width constraints during resize
+                img.style.maxWidth = 'none';
+            }
+            
+            function stopResize() {
+                if (!isResizing) return;
+                
+                isResizing = false;
+                
+                if (currentResizeElement) {
+                    currentResizeElement.container.classList.remove('resizing');
                     currentResizeElement = null;
-                    document.removeEventListener('mousemove', resize);
-                    document.removeEventListener('touchmove', resize);
-                    document.removeEventListener('mouseup', stopResize);
-                    document.removeEventListener('touchend', stopResize);
-                    updateCurrentDocument();
                 }
+                
+                document.body.style.userSelect = '';
+                document.body.style.webkitUserSelect = '';
+                
+                updateCurrentDocument();
             }
             
             function updateCurrentDocument() {
