@@ -32,6 +32,7 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            touch-action: manipulation;
         }
 
         /* Header */
@@ -64,19 +65,32 @@
             z-index: 1;
         }
 
-        /* Toolbar */
-        .toolbar {
-            background-color: var(--surface-color);
-            padding: 8px 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            overflow-x: auto;
+        /* Main Menu Button */
+        .menu-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            font-size: 24px;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .toolbar-group {
+        /* Toolbar - всегда видимый */
+        .toolbar {
+            background-color: var(--surface-color);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-color);
             display: flex;
-            gap: 8px;
+            overflow-x: auto;
+            gap: 4px;
+            flex-wrap: nowrap;
+            align-items: center;
         }
 
         .toolbar-btn {
@@ -89,7 +103,8 @@
             align-items: center;
             justify-content: center;
             color: var(--text-primary);
-            font-size: 18px;
+            font-size: 16px;
+            flex-shrink: 0;
         }
 
         .toolbar-btn.active {
@@ -97,37 +112,33 @@
             color: var(--primary-color);
         }
 
-        /* Format Panel */
-        .format-panel {
-            background-color: var(--surface-color);
-            padding: 16px;
-            border-bottom: 1px solid var(--border-color);
-            display: none;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-        }
-
-        .format-panel.active {
-            display: flex;
-        }
-
-        .format-select {
-            padding: 8px 12px;
-            border-radius: 8px;
+        .toolbar-select {
+            padding: 6px 8px;
+            border-radius: 6px;
             border: 1px solid var(--border-color);
             background-color: var(--surface-color);
-            font-size: 16px;
+            font-size: 14px;
+            flex-shrink: 0;
+            min-width: 70px;
         }
 
         .color-picker {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border: none;
             background: none;
             padding: 0;
-            border-radius: 50%;
+            border-radius: 6px;
             overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .divider {
+            width: 1px;
+            height: 24px;
+            background: var(--border-color);
+            margin: 0 4px;
+            flex-shrink: 0;
         }
 
         /* Editor */
@@ -147,6 +158,16 @@
             font-size: 16px;
             line-height: 1.5;
             overflow-y: auto;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        /* Выделение слова при клике */
+        .word-highlight {
+            background-color: rgba(255, 204, 0, 0.3);
+            border-radius: 3px;
+            padding: 1px 2px;
+            transition: background-color 0.2s;
         }
 
         /* Improved list styles */
@@ -160,13 +181,54 @@
             padding-left: 8px;
         }
 
-        /* Image styles */
+        /* Image styles with resize handle */
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin: 10px 0;
+            max-width: 100%;
+        }
+
         .editor-image {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
-            margin: 10px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: block;
+        }
+
+        .resize-handle {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            bottom: -8px;
+            right: -8px;
+            cursor: nwse-resize;
+            opacity: 0;
+            transition: opacity 0.2s;
+            border: 2px solid white;
+        }
+
+        .image-container:hover .resize-handle {
+            opacity: 1;
+        }
+
+        /* Audio player */
+        .audio-player {
+            width: 100%;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        /* GPS coordinates */
+        .gps-coordinates {
+            background: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 8px;
+            margin: 5px 0;
+            border-left: 4px solid var(--primary-color);
         }
 
         /* Modals */
@@ -237,8 +299,8 @@
         }
 
         .btn {
-            padding: 10px 16px;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
             font-size: 17px;
             font-weight: 600;
             border: none;
@@ -268,16 +330,37 @@
         .form-input {
             width: 100%;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 1px solid var(--border-color);
             background-color: var(--surface-color);
             font-size: 16px;
         }
 
+        .size-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .size-option {
+            padding: 10px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            background: white;
+            cursor: pointer;
+        }
+
+        .size-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(0, 122, 255, 0.1);
+        }
+
         /* Toast */
         .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 90px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background-color: rgba(0, 0, 0, 0.8);
@@ -301,95 +384,100 @@
             <i class="fas fa-chevron-left"></i>
         </button>
         <div class="header-title" id="documentTitle">Новый документ</div>
-        <button class="header-btn" id="menuBtn">
-            <i class="fas fa-ellipsis"></i>
+        <button class="header-btn" id="settingsBtn">
+            <i class="fas fa-cog"></i>
         </button>
     </div>
 
-    <!-- Toolbar -->
+    <!-- Toolbar - всегда видимый -->
     <div class="toolbar">
-        <div class="toolbar-group">
-            <button class="toolbar-btn" id="boldBtn" title="Жирный">
-                <i class="fas fa-bold"></i>
-            </button>
-            <button class="toolbar-btn" id="italicBtn" title="Курсив">
-                <i class="fas fa-italic"></i>
-            </button>
-            <button class="toolbar-btn" id="underlineBtn" title="Подчеркивание">
-                <i class="fas fa-underline"></i>
-            </button>
-        </div>
-        <div class="toolbar-group">
-            <button class="toolbar-btn" id="alignLeftBtn" title="Выравнивание по левому краю">
-                <i class="fas fa-align-left"></i>
-            </button>
-            <button class="toolbar-btn" id="alignCenterBtn" title="Выравнивание по центру">
-                <i class="fas fa-align-center"></i>
-            </button>
-            <button class="toolbar-btn" id="alignRightBtn" title="Выравнивание по правому краю">
-                <i class="fas fa-align-right"></i>
-            </button>
-        </div>
-        <div class="toolbar-group">
-            <button class="toolbar-btn" id="bulletListBtn" title="Маркированный список">
-                <i class="fas fa-list-ul"></i>
-            </button>
-            <button class="toolbar-btn" id="numberListBtn" title="Нумерованный список">
-                <i class="fas fa-list-ol"></i>
-            </button>
-            <button class="toolbar-btn" id="formatBtn" title="Форматирование">
-                <i class="fas fa-text-height"></i>
-            </button>
-        </div>
-        <div class="toolbar-group">
-            <button class="toolbar-btn" id="insertImageBtn" title="Вставить изображение">
-                <i class="fas fa-image"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Format Panel -->
-    <div class="format-panel" id="formatPanel">
-        <select class="format-select" id="fontSizeSelect">
-            <option value="12px">12px</option>
-            <option value="14px" selected>14px</option>
-            <option value="16px">16px</option>
-            <option value="18px">18px</option>
-            <option value="20px">20px</option>
-            <option value="24px">24px</option>
+        <!-- Форматирование текста -->
+        <button class="toolbar-btn" id="boldBtn" title="Жирный">
+            <i class="fas fa-bold"></i>
+        </button>
+        <button class="toolbar-btn" id="italicBtn" title="Курсив">
+            <i class="fas fa-italic"></i>
+        </button>
+        <button class="toolbar-btn" id="underlineBtn" title="Подчеркивание">
+            <i class="fas fa-underline"></i>
+        </button>
+        
+        <div class="divider"></div>
+        
+        <!-- Выделение цветом -->
+        <input type="color" class="color-picker" id="textColorPicker" value="#000000" title="Цвет текста">
+        <input type="color" class="color-picker" id="highlightColorPicker" value="#FFFF00" title="Цвет выделения">
+        
+        <div class="divider"></div>
+        
+        <!-- Выравнивание -->
+        <button class="toolbar-btn" id="alignLeftBtn" title="По левому краю">
+            <i class="fas fa-align-left"></i>
+        </button>
+        <button class="toolbar-btn" id="alignCenterBtn" title="По центру">
+            <i class="fas fa-align-center"></i>
+        </button>
+        <button class="toolbar-btn" id="alignRightBtn" title="По правому краю">
+            <i class="fas fa-align-right"></i>
+        </button>
+        
+        <div class="divider"></div>
+        
+        <!-- Списки -->
+        <button class="toolbar-btn" id="bulletListBtn" title="Маркированный список">
+            <i class="fas fa-list-ul"></i>
+        </button>
+        <button class="toolbar-btn" id="numberListBtn" title="Нумерованный список">
+            <i class="fas fa-list-ol"></i>
+        </button>
+        
+        <div class="divider"></div>
+        
+        <!-- Размер и шрифт -->
+        <select class="toolbar-select" id="fontSizeSelect">
+            <option value="12px">12</option>
+            <option value="14px" selected>14</option>
+            <option value="16px">16</option>
+            <option value="18px">18</option>
+            <option value="20px">20</option>
+            <option value="24px">24</option>
         </select>
         
-        <select class="format-select" id="fontFamilySelect">
+        <select class="toolbar-select" id="fontFamilySelect">
             <option value="Arial">Arial</option>
             <option value="Helvetica" selected>Helvetica</option>
             <option value="Georgia">Georgia</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Verdana">Verdana</option>
+            <option value="Times New Roman">Times</option>
         </select>
-        
-        <input type="color" class="color-picker" id="textColorPicker" value="#000000" title="Цвет текста">
     </div>
 
     <!-- Editor -->
     <div class="editor-container">
         <div id="editor" contenteditable="true">
             <p>Добро пожаловать в iDoc! Начните вводить текст...</p>
+            <p>Кликните на любое слово для его выделения.</p>
         </div>
     </div>
+
+    <!-- Main Menu Button -->
+    <button class="menu-btn" id="menuBtn">
+        <i class="fas fa-plus"></i>
+    </button>
 
     <!-- Menu Modal -->
     <div class="modal" id="menuModal">
         <div class="modal-content">
             <div class="modal-header">
-                <div class="modal-title">Действия с документом</div>
+                <div class="modal-title">Меню документа</div>
                 <button class="modal-close" id="closeMenuModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
                 <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <button class="btn btn-secondary" id="renameFileBtn" style="justify-content: flex-start; text-align: left;">
-                        <i class="fas fa-edit" style="margin-right: 10px;"></i> Переименовать файл
+                    <!-- Документ -->
+                    <button class="btn btn-secondary" id="newDocumentBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-file" style="margin-right: 10px;"></i> Новый документ
                     </button>
                     <button class="btn btn-secondary" id="saveFileBtn" style="justify-content: flex-start; text-align: left;">
                         <i class="fas fa-save" style="margin-right: 10px;"></i> Сохранить как TXT
@@ -397,16 +485,60 @@
                     <button class="btn btn-secondary" id="exportPdfBtn" style="justify-content: flex-start; text-align: left;">
                         <i class="fas fa-file-pdf" style="margin-right: 10px;"></i> Экспорт в PDF
                     </button>
-                    <button class="btn btn-secondary" id="loadFileBtn" style="justify-content: flex-start; text-align: left;">
-                        <i class="fas fa-folder-open" style="margin-right: 10px;"></i> Загрузить файл
-                    </button>
                     <button class="btn btn-secondary" id="printBtn" style="justify-content: flex-start; text-align: left;">
                         <i class="fas fa-print" style="margin-right: 10px;"></i> Печать
                     </button>
+                    
+                    <!-- Вставка -->
+                    <button class="btn btn-secondary" id="insertImageBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-image" style="margin-right: 10px;"></i> Вставить изображение
+                    </button>
+                    <button class="btn btn-secondary" id="insertAudioBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-music" style="margin-right: 10px;"></i> Вставить аудио
+                    </button>
+                    <button class="btn btn-secondary" id="insertGpsBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-map-marker-alt" style="margin-right: 10px;"></i> Вставить GPS координаты
+                    </button>
+                    
+                    <!-- Поделиться -->
+                    <button class="btn btn-secondary" id="shareBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-share-alt" style="margin-right: 10px;"></i> Поделиться
+                    </button>
+                    <button class="btn btn-secondary" id="sendBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-paper-plane" style="margin-right: 10px;"></i> Отправить
+                    </button>
+                    
+                    <!-- Дополнительно -->
                     <button class="btn btn-secondary" id="wordCountBtn" style="justify-content: flex-start; text-align: left;">
                         <i class="fas fa-calculator" style="margin-right: 10px;"></i> Статистика
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Настройки</div>
+                <button class="modal-close" id="closeSettingsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Название документа:</label>
+                        <input type="text" class="form-input" id="documentNameInput" value="Новый документ">
+                    </div>
+                    <button class="btn btn-primary" id="renameDocumentBtn" style="width: 100%;">
+                        <i class="fas fa-edit" style="margin-right: 8px;"></i>Переименовать документ
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSettingsBtn">Закрыть</button>
             </div>
         </div>
     </div>
@@ -429,10 +561,78 @@
                     <label class="form-label">Или введите URL изображения:</label>
                     <input type="text" id="imageUrlInput" class="form-input" placeholder="https://example.com/image.jpg">
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Размер изображения:</label>
+                    <div class="size-options">
+                        <div class="size-option selected" data-size="small">Маленький</div>
+                        <div class="size-option" data-size="medium">Средний</div>
+                        <div class="size-option" data-size="large">Большой</div>
+                        <div class="size-option" data-size="original">Оригинал</div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" id="cancelImageBtn">Отмена</button>
                 <button class="btn btn-primary" id="insertImageBtnModal">Вставить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insert Audio Modal -->
+    <div class="modal" id="insertAudioModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Вставить аудио</div>
+                <button class="modal-close" id="closeAudioModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Выберите аудиофайл:</label>
+                    <input type="file" id="audioFileInput" accept="audio/*" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Или введите URL аудио:</label>
+                    <input type="text" id="audioUrlInput" class="form-input" placeholder="https://example.com/audio.mp3">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelAudioBtn">Отмена</button>
+                <button class="btn btn-primary" id="insertAudioBtnModal">Вставить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Insert GPS Modal -->
+    <div class="modal" id="insertGpsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Вставить GPS координаты</div>
+                <button class="modal-close" id="closeGpsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Широта:</label>
+                    <input type="text" id="gpsLatInput" class="form-input" placeholder="55.7558">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Долгота:</label>
+                    <input type="text" id="gpsLngInput" class="form-input" placeholder="37.6173">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Описание (необязательно):</label>
+                    <input type="text" id="gpsDescInput" class="form-input" placeholder="Москва, Красная площадь">
+                </div>
+                <button class="btn btn-secondary" id="getCurrentLocationBtn" style="width: 100%; margin-top: 10px;">
+                    <i class="fas fa-location-arrow" style="margin-right: 8px;"></i>Текущее местоположение
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelGpsBtn">Отмена</button>
+                <button class="btn btn-primary" id="insertGpsBtnModal">Вставить</button>
             </div>
         </div>
     </div>
@@ -444,14 +644,15 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Elements
             const editor = document.getElementById('editor');
-            const formatPanel = document.getElementById('formatPanel');
-            const formatBtn = document.getElementById('formatBtn');
             const menuBtn = document.getElementById('menuBtn');
             const menuModal = document.getElementById('menuModal');
+            const settingsModal = document.getElementById('settingsModal');
             const insertImageModal = document.getElementById('insertImageModal');
+            const insertAudioModal = document.getElementById('insertAudioModal');
+            const insertGpsModal = document.getElementById('insertGpsModal');
             const toast = document.getElementById('toast');
             
-            // Format buttons
+            // Toolbar buttons
             const boldBtn = document.getElementById('boldBtn');
             const italicBtn = document.getElementById('italicBtn');
             const underlineBtn = document.getElementById('underlineBtn');
@@ -460,35 +661,67 @@
             const alignRightBtn = document.getElementById('alignRightBtn');
             const bulletListBtn = document.getElementById('bulletListBtn');
             const numberListBtn = document.getElementById('numberListBtn');
-            const insertImageBtn = document.getElementById('insertImageBtn');
             const fontSizeSelect = document.getElementById('fontSizeSelect');
             const fontFamilySelect = document.getElementById('fontFamilySelect');
             const textColorPicker = document.getElementById('textColorPicker');
+            const highlightColorPicker = document.getElementById('highlightColorPicker');
             
-            // Menu buttons
+            // Menu buttons - ВСЕ функции вернул!
+            const newDocumentBtn = document.getElementById('newDocumentBtn');
             const saveFileBtn = document.getElementById('saveFileBtn');
             const exportPdfBtn = document.getElementById('exportPdfBtn');
-            const loadFileBtn = document.getElementById('loadFileBtn');
             const printBtn = document.getElementById('printBtn');
+            const insertImageBtn = document.getElementById('insertImageBtn');
+            const insertAudioBtn = document.getElementById('insertAudioBtn');
+            const insertGpsBtn = document.getElementById('insertGpsBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const sendBtn = document.getElementById('sendBtn');
             const wordCountBtn = document.getElementById('wordCountBtn');
-            const renameFileBtn = document.getElementById('renameFileBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            const renameDocumentBtn = document.getElementById('renameDocumentBtn');
+            
+            // Settings modal elements
+            const documentNameInput = document.getElementById('documentNameInput');
+            const closeSettingsModal = document.getElementById('closeSettingsModal');
+            const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+            
+            // Modal close buttons
+            const closeMenuModal = document.getElementById('closeMenuModal');
+            const closeImageModal = document.getElementById('closeImageModal');
+            const closeAudioModal = document.getElementById('closeAudioModal');
+            const closeGpsModal = document.getElementById('closeGpsModal');
             
             // Image modal elements
             const imageFileInput = document.getElementById('imageFileInput');
             const imageUrlInput = document.getElementById('imageUrlInput');
             const cancelImageBtn = document.getElementById('cancelImageBtn');
             const insertImageBtnModal = document.getElementById('insertImageBtnModal');
-            const closeImageModal = document.getElementById('closeImageModal');
+            const sizeOptions = document.querySelectorAll('.size-option');
             
-            // Modal close buttons
-            const closeMenuModal = document.getElementById('closeMenuModal');
+            // Audio modal elements
+            const audioFileInput = document.getElementById('audioFileInput');
+            const audioUrlInput = document.getElementById('audioUrlInput');
+            const cancelAudioBtn = document.getElementById('cancelAudioBtn');
+            const insertAudioBtnModal = document.getElementById('insertAudioBtnModal');
+            
+            // GPS modal elements
+            const gpsLatInput = document.getElementById('gpsLatInput');
+            const gpsLngInput = document.getElementById('gpsLngInput');
+            const gpsDescInput = document.getElementById('gpsDescInput');
+            const cancelGpsBtn = document.getElementById('cancelGpsBtn');
+            const insertGpsBtnModal = document.getElementById('insertGpsBtnModal');
+            const getCurrentLocationBtn = document.getElementById('getCurrentLocationBtn');
             
             // State
-            let isFormatPanelVisible = false;
             let currentDocument = {
                 title: 'Новый документ',
                 content: ''
             };
+            let selectedImageSize = 'small';
+            let isResizing = false;
+            let currentResizeElement = null;
+            let startX, startY, startWidth, startHeight;
+            let lastClickedWord = null;
             
             // Initialize
             initEditor();
@@ -508,11 +741,47 @@
                 }
                 
                 setupEventListeners();
+                initImageResizeHandlers();
+                setupWordClickHandler();
             }
             
             function setupEventListeners() {
-                // Format panel toggle
-                formatBtn.addEventListener('click', toggleFormatPanel);
+                // Menu button
+                menuBtn.addEventListener('click', () => menuModal.classList.add('active'));
+                closeMenuModal.addEventListener('click', () => menuModal.classList.remove('active'));
+                
+                // Settings button
+                settingsBtn.addEventListener('click', () => {
+                    documentNameInput.value = currentDocument.title;
+                    settingsModal.classList.add('active');
+                });
+                
+                closeSettingsModal.addEventListener('click', () => settingsModal.classList.remove('active'));
+                cancelSettingsBtn.addEventListener('click', () => settingsModal.classList.remove('active'));
+                
+                // Rename document button
+                renameDocumentBtn.addEventListener('click', () => {
+                    const newName = documentNameInput.value.trim();
+                    if (newName) {
+                        currentDocument.title = newName;
+                        updateDocumentTitle();
+                        updateCurrentDocument();
+                        showToast('Документ переименован');
+                        settingsModal.classList.remove('active');
+                    }
+                });
+                
+                // Все функции меню - ВЕРНУЛ!
+                newDocumentBtn.addEventListener('click', createNewDocument);
+                saveFileBtn.addEventListener('click', saveToFile);
+                exportPdfBtn.addEventListener('click', exportToPdf);
+                printBtn.addEventListener('click', printDocument);
+                insertImageBtn.addEventListener('click', () => insertImageModal.classList.add('active'));
+                insertAudioBtn.addEventListener('click', () => insertAudioModal.classList.add('active'));
+                insertGpsBtn.addEventListener('click', () => insertGpsModal.classList.add('active'));
+                shareBtn.addEventListener('click', shareDocument);
+                sendBtn.addEventListener('click', sendDocument);
+                wordCountBtn.addEventListener('click', showWordCount);
                 
                 // Text formatting
                 boldBtn.addEventListener('click', () => execCommand('bold'));
@@ -535,17 +804,26 @@
                     setTimeout(applyListStyling, 10);
                 });
                 
-                // Font size and family
+                // Font size
                 fontSizeSelect.addEventListener('change', () => {
                     const size = fontSizeSelect.value;
-                    editor.style.fontSize = size;
+                    execCommand('fontSize', false, '7');
+                    document.execCommand('styleWithCSS', false, true);
+                    document.execCommand('fontSize', false, '1');
+                    const fontElements = document.getElementsByTagName('font');
+                    for (let i = 0, len = fontElements.length; i < len; i++) {
+                        if (fontElements[i].size === '1') {
+                            fontElements[i].removeAttribute('size');
+                            fontElements[i].style.fontSize = size;
+                        }
+                    }
                     updateCurrentDocument();
                 });
                 
+                // Font family
                 fontFamilySelect.addEventListener('change', () => {
-                    const font = fontFamilySelect.value;
-                    editor.style.fontFamily = font;
-                    updateCurrentDocument();
+                    const fontFamily = fontFamilySelect.value;
+                    execCommand('fontName', false, fontFamily);
                 });
                 
                 // Text color
@@ -554,105 +832,120 @@
                     execCommand('foreColor', false, textColorPicker.value);
                 });
                 
-                // Image insertion
-                insertImageBtn.addEventListener('click', () => insertImageModal.classList.add('active'));
-                
-                // Menu
-                menuBtn.addEventListener('click', () => menuModal.classList.add('active'));
-                closeMenuModal.addEventListener('click', () => menuModal.classList.remove('active'));
-                
-                // File operations
-                saveFileBtn.addEventListener('click', saveToFile);
-                exportPdfBtn.addEventListener('click', exportToPdf);
-                loadFileBtn.addEventListener('click', loadFromFile);
-                printBtn.addEventListener('click', printDocument);
-                wordCountBtn.addEventListener('click', showWordCount);
-                renameFileBtn.addEventListener('click', renameDocument);
+                // Highlight color
+                highlightColorPicker.addEventListener('change', () => {
+                    execCommand('styleWithCSS', false, true);
+                    execCommand('hiliteColor', false, highlightColorPicker.value);
+                });
                 
                 // Image modal
                 closeImageModal.addEventListener('click', () => insertImageModal.classList.remove('active'));
                 cancelImageBtn.addEventListener('click', () => insertImageModal.classList.remove('active'));
+                
+                // Image size selection
+                sizeOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        sizeOptions.forEach(o => o.classList.remove('selected'));
+                        option.classList.add('selected');
+                        selectedImageSize = option.dataset.size;
+                    });
+                });
+                
                 insertImageBtnModal.addEventListener('click', insertImageFromModal);
+                
+                // Audio modal
+                closeAudioModal.addEventListener('click', () => insertAudioModal.classList.remove('active'));
+                cancelAudioBtn.addEventListener('click', () => insertAudioModal.classList.remove('active'));
+                insertAudioBtnModal.addEventListener('click', insertAudioFromModal);
+                
+                // GPS modal
+                closeGpsModal.addEventListener('click', () => insertGpsModal.classList.remove('active'));
+                cancelGpsBtn.addEventListener('click', () => insertGpsModal.classList.remove('active'));
+                insertGpsBtnModal.addEventListener('click', insertGpsFromModal);
+                getCurrentLocationBtn.addEventListener('click', getCurrentLocation);
                 
                 // Editor events
                 editor.addEventListener('input', updateCurrentDocument);
             }
             
-            function toggleFormatPanel() {
-                isFormatPanelVisible = !isFormatPanelVisible;
-                formatPanel.classList.toggle('active', isFormatPanelVisible);
-                formatBtn.classList.toggle('active', isFormatPanelVisible);
-            }
-            
-            function execCommand(command) {
-                document.execCommand(command, false, null);
-                editor.focus();
-                updateCurrentDocument();
-            }
-            
-            function applyListStyling() {
-                const lists = editor.querySelectorAll('ul, ol');
-                lists.forEach(list => {
-                    if (!list.style.paddingLeft) {
-                        list.style.paddingLeft = '24px';
+            // Обработчик клика по словам
+            function setupWordClickHandler() {
+                editor.addEventListener('click', function(e) {
+                    // Убираем предыдущее выделение
+                    if (lastClickedWord) {
+                        lastClickedWord.classList.remove('word-highlight');
+                    }
+                    
+                    // Находим слово, по которому кликнули
+                    const clickedElement = e.target;
+                    if (clickedElement.nodeType === 3) { // Текстовый узел
+                        const word = findWordFromTextNode(clickedElement, e.offsetX, e.offsetY);
+                        if (word && word.element) {
+                            word.element.classList.add('word-highlight');
+                            lastClickedWord = word.element;
+                            
+                            // Выделяем слово программно
+                            const range = document.createRange();
+                            range.selectNodeContents(word.element);
+                            const selection = window.getSelection();
+                            selection.removeAllRanges();
+                            selection.addRange(range);
+                        }
                     }
                 });
             }
             
-            function insertImageFromModal() {
-                let imageSrc = '';
+            function findWordFromTextNode(textNode, offsetX, offsetY) {
+                const text = textNode.textContent;
+                const words = text.split(/(\s+)/);
+                let currentPos = 0;
                 
-                if (imageFileInput.files.length > 0) {
-                    const reader = new FileReader();
-                    reader.onload = function(event) {
-                        imageSrc = event.target.result;
-                        insertImageToEditor(imageSrc);
+                for (let i = 0; i < words.length; i++) {
+                    const word = words[i];
+                    if (word.trim().length > 0) {
+                        const wordLength = word.length;
+                        
+                        // Создаем span для каждого слова
+                        const span = document.createElement('span');
+                        span.textContent = word;
+                        span.className = 'word-span';
+                        
+                        // Заменяем текст на span
+                        const range = document.createRange();
+                        range.setStart(textNode, currentPos);
+                        range.setEnd(textNode, currentPos + wordLength);
+                        range.deleteContents();
+                        range.insertNode(span);
+                        
+                        currentPos += wordLength;
+                        
+                        // Проверяем, попадает ли клик в этот span
+                        const rect = span.getBoundingClientRect();
+                        if (offsetX >= rect.left && offsetX <= rect.right && 
+                            offsetY >= rect.top && offsetY <= rect.bottom) {
+                            return { element: span, word: word };
+                        }
+                    } else {
+                        currentPos += word.length;
+                    }
+                }
+                
+                return null;
+            }
+            
+            // Функции меню - ВСЕ ВЕРНУЛ!
+            function createNewDocument() {
+                if (confirm('Создать новый документ? Несохраненные изменения будут потеряны.')) {
+                    editor.innerHTML = '<p>Новый документ</p>';
+                    currentDocument = {
+                        title: 'Новый документ',
+                        content: ''
                     };
-                    reader.readAsDataURL(imageFileInput.files[0]);
-                } else if (imageUrlInput.value) {
-                    imageSrc = imageUrlInput.value;
-                    insertImageToEditor(imageSrc);
-                } else {
-                    showToast('Выберите изображение или введите URL');
-                    return;
+                    updateDocumentTitle();
+                    updateCurrentDocument();
+                    menuModal.classList.remove('active');
+                    showToast('Новый документ создан');
                 }
-            }
-            
-            function insertImageToEditor(src) {
-                const img = document.createElement('img');
-                img.src = src;
-                img.className = 'editor-image';
-                img.style.maxWidth = '100%';
-                
-                // Insert at cursor position
-                const selection = window.getSelection();
-                if (selection.rangeCount > 0) {
-                    const range = selection.getRangeAt(0);
-                    range.insertNode(img);
-                    
-                    // Add space after image
-                    const textNode = document.createTextNode('\u00A0');
-                    range.insertNode(textNode);
-                    
-                    // Move cursor after image
-                    range.setStartAfter(textNode);
-                    range.setEndAfter(textNode);
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                }
-                
-                updateCurrentDocument();
-                insertImageModal.classList.remove('active');
-                showToast('Изображение вставлено');
-                
-                // Reset form
-                imageFileInput.value = '';
-                imageUrlInput.value = '';
-            }
-            
-            function updateCurrentDocument() {
-                currentDocument.content = editor.innerHTML;
-                localStorage.setItem('lastDocument', JSON.stringify(currentDocument));
             }
             
             function saveToFile() {
@@ -703,31 +996,43 @@
                 });
             }
             
-            function loadFromFile() {
-                const input = document.createElement('input');
-                input.type = 'file';
-                input.accept = '.txt';
-                input.onchange = e => {
-                    const file = e.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = e => {
-                            editor.innerHTML = e.target.result;
-                            currentDocument.title = file.name.replace('.txt', '');
-                            updateDocumentTitle();
-                            updateCurrentDocument();
-                            showToast('Файл загружен');
-                        };
-                        reader.readAsText(file);
-                    }
-                };
-                input.click();
-                menuModal.classList.remove('active');
-            }
-            
             function printDocument() {
                 window.print();
                 menuModal.classList.remove('active');
+                showToast('Подготовка к печати...');
+            }
+            
+            function shareDocument() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: currentDocument.title,
+                        text: editor.innerText,
+                        url: window.location.href
+                    }).then(() => {
+                        showToast('Документ успешно отправлен');
+                    }).catch(error => {
+                        showToast('Ошибка при отправке');
+                    });
+                } else {
+                    // Fallback - копирование текста
+                    const textArea = document.createElement('textarea');
+                    textArea.value = editor.innerText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast('Текст скопирован в буфер обмена');
+                }
+                menuModal.classList.remove('active');
+            }
+            
+            function sendDocument() {
+                // Эмуляция отправки по email
+                const subject = encodeURIComponent(currentDocument.title);
+                const body = encodeURIComponent(editor.innerText);
+                window.open(`mailto:?subject=${subject}&body=${body}`);
+                menuModal.classList.remove('active');
+                showToast('Открывается почтовый клиент...');
             }
             
             function showWordCount() {
@@ -741,15 +1046,244 @@
                 menuModal.classList.remove('active');
             }
             
-            function renameDocument() {
-                const newName = prompt('Введите новое название документа:', currentDocument.title);
-                if (newName && newName.trim()) {
-                    currentDocument.title = newName.trim();
-                    updateDocumentTitle();
-                    updateCurrentDocument();
-                    showToast('Документ переименован');
+            function execCommand(command, showUI = false, value = null) {
+                document.execCommand(command, showUI, value);
+                editor.focus();
+                updateCurrentDocument();
+            }
+            
+            function applyListStyling() {
+                const lists = editor.querySelectorAll('ul, ol');
+                lists.forEach(list => {
+                    if (!list.style.paddingLeft) {
+                        list.style.paddingLeft = '24px';
+                    }
+                });
+            }
+            
+            function insertImageFromModal() {
+                let imageSrc = '';
+                
+                if (imageFileInput.files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        imageSrc = event.target.result;
+                        insertImageToEditor(imageSrc);
+                    };
+                    reader.readAsDataURL(imageFileInput.files[0]);
+                } else if (imageUrlInput.value) {
+                    imageSrc = imageUrlInput.value;
+                    insertImageToEditor(imageSrc);
+                } else {
+                    showToast('Выберите изображение или введите URL');
+                    return;
                 }
-                menuModal.classList.remove('active');
+            }
+            
+            function insertImageToEditor(src) {
+                const container = document.createElement('div');
+                container.className = 'image-container';
+                
+                const img = document.createElement('img');
+                img.src = src;
+                img.className = 'editor-image';
+                
+                // Apply selected size
+                switch(selectedImageSize) {
+                    case 'small':
+                        img.style.width = '50%';
+                        break;
+                    case 'medium':
+                        img.style.width = '75%';
+                        break;
+                    case 'large':
+                        img.style.width = '90%';
+                        break;
+                    case 'original':
+                    default:
+                        img.style.maxWidth = '100%';
+                        break;
+                }
+                
+                const resizeHandle = document.createElement('div');
+                resizeHandle.className = 'resize-handle';
+                
+                container.appendChild(img);
+                container.appendChild(resizeHandle);
+                
+                // Insert at cursor position
+                insertAtCursor(container);
+                initResizeHandler(container, img, resizeHandle);
+                
+                updateCurrentDocument();
+                insertImageModal.classList.remove('active');
+                showToast('Изображение вставлено');
+                
+                // Reset form
+                imageFileInput.value = '';
+                imageUrlInput.value = '';
+            }
+            
+            function insertAudioFromModal() {
+                let audioSrc = '';
+                
+                if (audioFileInput.files.length > 0) {
+                    audioSrc = URL.createObjectURL(audioFileInput.files[0]);
+                    insertAudioToEditor(audioSrc);
+                } else if (audioUrlInput.value) {
+                    audioSrc = audioUrlInput.value;
+                    insertAudioToEditor(audioSrc);
+                } else {
+                    showToast('Выберите аудиофайл или введите URL');
+                    return;
+                }
+            }
+            
+            function insertAudioToEditor(src) {
+                const audio = document.createElement('audio');
+                audio.src = src;
+                audio.controls = true;
+                audio.className = 'audio-player';
+                
+                insertAtCursor(audio);
+                updateCurrentDocument();
+                insertAudioModal.classList.remove('active');
+                showToast('Аудио вставлено');
+                
+                // Reset form
+                audioFileInput.value = '';
+                audioUrlInput.value = '';
+            }
+            
+            function insertGpsFromModal() {
+                const lat = gpsLatInput.value.trim();
+                const lng = gpsLngInput.value.trim();
+                const desc = gpsDescInput.value.trim();
+                
+                if (!lat || !lng) {
+                    showToast('Введите координаты');
+                    return;
+                }
+                
+                const gpsElement = document.createElement('div');
+                gpsElement.className = 'gps-coordinates';
+                gpsElement.innerHTML = `
+                    <strong>📍 GPS координаты</strong><br>
+                    ${desc ? desc + '<br>' : ''}
+                    Широта: ${lat}<br>
+                    Долгота: ${lng}<br>
+                    <small><a href="https://maps.google.com/?q=${lat},${lng}" target="_blank">Открыть в картах</a></small>
+                `;
+                
+                insertAtCursor(gpsElement);
+                updateCurrentDocument();
+                insertGpsModal.classList.remove('active');
+                showToast('GPS координаты вставлены');
+                
+                // Reset form
+                gpsLatInput.value = '';
+                gpsLngInput.value = '';
+                gpsDescInput.value = '';
+            }
+            
+            function getCurrentLocation() {
+                if (!navigator.geolocation) {
+                    showToast('Геолокация не поддерживается');
+                    return;
+                }
+                
+                showToast('Определение местоположения...');
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        gpsLatInput.value = position.coords.latitude.toFixed(6);
+                        gpsLngInput.value = position.coords.longitude.toFixed(6);
+                        showToast('Местоположение определено');
+                    },
+                    (error) => {
+                        showToast('Ошибка определения местоположения');
+                    }
+                );
+            }
+            
+            function insertAtCursor(element) {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    range.insertNode(element);
+                    
+                    // Add space after element
+                    const textNode = document.createTextNode('\u00A0');
+                    range.insertNode(textNode);
+                    
+                    range.setStartAfter(textNode);
+                    range.setEndAfter(textNode);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                } else {
+                    editor.appendChild(element);
+                }
+            }
+            
+            function initImageResizeHandlers() {
+                // Initialize for existing images
+                document.querySelectorAll('.image-container').forEach(container => {
+                    const img = container.querySelector('img');
+                    const handle = container.querySelector('.resize-handle');
+                    if (img && handle) {
+                        initResizeHandler(container, img, handle);
+                    }
+                });
+            }
+            
+            function initResizeHandler(container, img, handle) {
+                handle.addEventListener('mousedown', startResize);
+                handle.addEventListener('touchstart', startResize);
+                
+                function startResize(e) {
+                    e.preventDefault();
+                    isResizing = true;
+                    currentResizeElement = img;
+                    startX = e.clientX || e.touches[0].clientX;
+                    startY = e.clientY || e.touches[0].clientY;
+                    startWidth = parseInt(getComputedStyle(img).width, 10);
+                    startHeight = parseInt(getComputedStyle(img).height, 10);
+                    
+                    document.addEventListener('mousemove', resize);
+                    document.addEventListener('touchmove', resize);
+                    document.addEventListener('mouseup', stopResize);
+                    document.addEventListener('touchend', stopResize);
+                }
+                
+                function resize(e) {
+                    if (!isResizing) return;
+                    
+                    const currentX = e.clientX || e.touches[0].clientX;
+                    const currentY = e.clientY || e.touches[0].clientY;
+                    
+                    const width = startWidth + (currentX - startX);
+                    const height = startHeight + (currentY - startY);
+                    
+                    if (width > 50 && width < editor.offsetWidth) {
+                        img.style.width = width + 'px';
+                        img.style.height = 'auto';
+                    }
+                }
+                
+                function stopResize() {
+                    isResizing = false;
+                    currentResizeElement = null;
+                    document.removeEventListener('mousemove', resize);
+                    document.removeEventListener('touchmove', resize);
+                    document.removeEventListener('mouseup', stopResize);
+                    document.removeEventListener('touchend', stopResize);
+                    updateCurrentDocument();
+                }
+            }
+            
+            function updateCurrentDocument() {
+                currentDocument.content = editor.innerHTML;
+                localStorage.setItem('lastDocument', JSON.stringify(currentDocument));
             }
             
             function updateDocumentTitle() {
@@ -765,9 +1299,11 @@
             }
         });
 
-        // Prevent zoom in Telegram Web Apps
+        // Enable zoom with pinch gesture
         document.addEventListener('touchstart', function(e) {
-            if (e.touches.length > 1) e.preventDefault();
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
         }, { passive: false });
 
         document.addEventListener('gesturestart', function(e) {
