@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iDoc - Текстовый редактор</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600&family=Source+Sans+Pro:wght@300;400;600&family=Merriweather:wght@300;400;700&family=Playfair+Display:wght@400;500;700&family=PT+Serif:wght@400;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        :root {
+            --primary-color: #007AFF;
+            --bg-color: #F2F2F7;
+            --surface-color: #FFFFFF;
+            --text-primary: #000000;
+            --text-secondary: #8E8E93;
+            --border-color: #C6C6C8;
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding-top: var(--safe-area-inset-top);
+            padding-bottom: var(--safe-area-inset-bottom);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Header */
+        .header {
+            background-color: var(--surface-color);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            position: absolute;
+            left: 0;
+            right: 0;
+            pointer-events: none;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 17px;
+            padding: 8px;
+            z-index: 1;
+        }
+
+        .header-btn:disabled {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        /* Toolbar */
+        .toolbar {
+            background-color: var(--surface-color);
+            padding: 8px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .toolbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toolbar-btn {
+            background: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        .toolbar-btn.active {
+            background-color: rgba(0, 122, 255, 0.1);
+            color: var(--primary-color);
+        }
+
+        /* Format Panel */
+        .format-panel {
+            background-color: var(--surface-color);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: none;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .format-panel.active {
+            display: flex;
+        }
+
+        .format-select {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--surface-color);
+            font-size: 16px;
+            min-width: 120px;
+        }
+
+        .font-size-select {
+            min-width: 80px;
+        }
+
+        .color-picker {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: none;
+            padding: 0;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%;
+        }
+
+        .format-btn {
+            background: none;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+            font-size: 18px;
+        }
+
+        /* Editor */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #editor {
+            flex: 1;
+            padding: 16px;
+            background-color: var(--surface-color);
+            border: none;
+            outline: none;
+            font-size: 16px;
+            line-height: 1.5;
+            overflow-y: auto;
+            resize: none;
+            min-height: 200px;
+        }
+
+        #editor:focus {
+            outline: none;
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--surface-color);
+            border-radius: 14px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 17px;
+        }
+
+        .modal-body {
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+        }
+
+        /* List styles */
+        .list-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .list-bullet {
+            margin-right: 8px;
+            min-width: 20px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Font preview in dropdown */
+        .font-option {
+            font-family: inherit;
+        }
+
+        .font-arial { font-family: Arial, sans-serif; }
+        .font-helvetica { font-family: Helvetica, sans-serif; }
+        .font-georgia { font-family: Georgia, serif; }
+        .font-times { font-family: 'Times New Roman', serif; }
+        .font-verdana { font-family: Verdana, sans-serif; }
+        .font-roboto { font-family: 'Roboto', sans-serif; }
+        .font-open-sans { font-family: 'Open Sans', sans-serif; }
+        .font-lato { font-family: 'Lato', sans-serif; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        .font-source-sans { font-family: 'Source Sans Pro', sans-serif; }
+        .font-merriweather { font-family: 'Merriweather', serif; }
+        .font-playfair { font-family: 'Playfair Display', serif; }
+        .font-pt-serif { font-family: 'PT Serif', serif; }
+        .font-noto-serif { font-family: 'Noto Serif', serif; }
+
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000000;
+                --surface-color: #1C1C1E;
+                --text-primary: #FFFFFF;
+                --text-secondary: #8E8E93;
+                --border-color: #38383A;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .toolbar {
+                padding: 8px 12px;
+            }
+            
+            .toolbar-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+            
+            .format-panel {
+                padding: 12px;
+                gap: 8px;
+            }
+            
+            .format-select {
+                min-width: 100px;
+                font-size: 14px;
+                padding: 6px 8px;
+            }
+            
+            .font-size-select {
+                min-width: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <button class="header-btn" id="backBtn">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <div class="header-title" id="documentTitle">Новый документ</div>
+        <button class="header-btn" id="menuBtn">
+            <i class="fas fa-ellipsis"></i>
+        </button>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="boldBtn" title="Жирный">
+                <i class="fas fa-bold"></i>
+            </button>
+            <button class="toolbar-btn" id="italicBtn" title="Курсив">
+                <i class="fas fa-italic"></i>
+            </button>
+            <button class="toolbar-btn" id="underlineBtn" title="Подчеркивание">
+                <i class="fas fa-underline"></i>
+            </button>
+        </div>
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="alignLeftBtn" title="Выравнивание по левому краю">
+                <i class="fas fa-align-left"></i>
+            </button>
+            <button class="toolbar-btn" id="alignCenterBtn" title="Выравнивание по центру">
+                <i class="fas fa-align-center"></i>
+            </button>
+            <button class="toolbar-btn" id="alignRightBtn" title="Выравнивание по правому краю">
+                <i class="fas fa-align-right"></i>
+            </button>
+        </div>
+        <div class="toolbar-group">
+            <button class="toolbar-btn" id="bulletListBtn" title="Маркированный список">
+                <i class="fas fa-list-ul"></i>
+            </button>
+            <button class="toolbar-btn" id="numberListBtn" title="Нумерованный список">
+                <i class="fas fa-list-ol"></i>
+            </button>
+            <button class="toolbar-btn" id="formatBtn" title="Форматирование">
+                <i class="fas fa-text-height"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Format Panel -->
+    <div class="format-panel" id="formatPanel">
+        <select class="format-select font-size-select" id="fontSizeSelect">
+            <option value="10px">10px</option>
+            <option value="12px">12px</option>
+            <option value="14px" selected>14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="24px">24px</option>
+            <option value="28px">28px</option>
+            <option value="32px">32px</option>
+            <option value="36px">36px</option>
+        </select>
+        
+        <select class="format-select" id="fontFamilySelect">
+            <option value="Arial" class="font-option font-arial">Arial</option>
+            <option value="Helvetica" class="font-option font-helvetica">Helvetica</option>
+            <option value="Georgia" class="font-option font-georgia">Georgia</option>
+            <option value="Times New Roman" class="font-option font-times">Times New Roman</option>
+            <option value="Verdana" class="font-option font-verdana">Verdana</option>
+            <option value="Roboto" class="font-option font-roboto">Roboto</option>
+            <option value="Open Sans" class="font-option font-open-sans">Open Sans</option>
+            <option value="Lato" class="font-option font-lato">Lato</option>
+            <option value="Montserrat" class="font-option font-montserrat">Montserrat</option>
+            <option value="Source Sans Pro" class="font-option font-source-sans">Source Sans Pro</option>
+            <option value="Merriweather" class="font-option font-merriweather">Merriweather</option>
+            <option value="Playfair Display" class="font-option font-playfair">Playfair Display</option>
+            <option value="PT Serif" class="font-option font-pt-serif">PT Serif</option>
+            <option value="Noto Serif" class="font-option font-noto-serif">Noto Serif</option>
+        </select>
+        
+        <input type="color" class="color-picker" id="textColorPicker" value="#000000" title="Цвет текста">
+        <input type="color" class="color-picker" id="highlightColorPicker" value="#FFFF00" title="Цвет выделения">
+        
+        <button class="format-btn" id="increaseIndentBtn" title="Увеличить отступ">
+            <i class="fas fa-indent"></i>
+        </button>
+        <button class="format-btn" id="decreaseIndentBtn" title="Уменьшить отступ">
+            <i class="fas fa-outdent"></i>
+        </button>
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-container">
+        <div id="editor" contenteditable="true">
+            <p>Начните вводить текст...</p>
+        </div>
+    </div>
+
+    <!-- Menu Modal -->
+    <div class="modal" id="menuModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Действия с документом</div>
+                <button class="modal-close" id="closeMenuModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <button class="btn btn-secondary" id="saveFileBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-save" style="margin-right: 10px;"></i> Сохранить файл
+                    </button>
+                    <button class="btn btn-secondary" id="loadFileBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-folder-open" style="margin-right: 10px;"></i> Загрузить файл
+                    </button>
+                    <button class="btn btn-secondary" id="printBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-print" style="margin-right: 10px;"></i> Печать
+                    </button>
+                    <button class="btn btn-secondary" id="shareBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-share-alt" style="margin-right: 10px;"></i> Поделиться
+                    </button>
+                    <button class="btn btn-secondary" id="wordCountBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-calculator" style="margin-right: 10px;"></i> Статистика
+                    </button>
+                    <button class="btn btn-secondary" id="settingsBtn" style="justify-content: flex-start; text-align: left;">
+                        <i class="fas fa-cog" style="margin-right: 10px;"></i> Настройки
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Word Count Modal -->
+    <div class="modal" id="wordCountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Статистика документа</div>
+                <button class="modal-close" id="closeWordCountModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Символов:</span>
+                        <span id="charCount">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Символов (без пробелов):</span>
+                        <span id="charNoSpacesCount">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Слов:</span>
+                        <span id="wordCount">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Строк:</span>
+                        <span id="lineCount">0</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Абзацев:</span>
+                        <span id="paragraphCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="closeWordCountModalBtn">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">Настройки</div>
+                <button class="modal-close" id="closeSettingsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; flex-direction: column; gap: 16px;">
+                    <div>
+                        <h3 style="margin-bottom: 8px;">Тема</h3>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-secondary" id="lightThemeBtn">Светлая</button>
+                            <button class="btn btn-secondary" id="darkThemeBtn">Темная</button>
+                            <button class="btn btn-secondary" id="autoThemeBtn">Авто</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 8px;">Автосохранение</h3>
+                        <label style="display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" id="autoSaveCheckbox" checked>
+                            <span>Включить автосохранение</span>
+                        </label>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 8px;">Шрифт по умолчанию</h3>
+                        <select class="format-select" id="defaultFontFamilySelect" style="width: 100%;">
+                            <option value="Arial" class="font-option font-arial">Arial</option>
+                            <option value="Helvetica" class="font-option font-helvetica">Helvetica</option>
+                            <option value="Georgia" class="font-option font-georgia">Georgia</option>
+                            <option value="Times New Roman" class="font-option font-times">Times New Roman</option>
+                            <option value="Verdana" class="font-option font-verdana">Verdana</option>
+                            <option value="Roboto" class="font-option font-roboto">Roboto</option>
+                            <option value="Open Sans" class="font-option font-open-sans">Open Sans</option>
+                            <option value="Lato" class="font-option font-lato">Lato</option>
+                            <option value="Montserrat" class="font-option font-montserrat">Montserrat</option>
+                            <option value="Source Sans Pro" class="font-option font-source-sans">Source Sans Pro</option>
+                            <option value="Merriweather" class="font-option font-merriweather">Merriweather</option>
+                            <option value="Playfair Display" class="font-option font-playfair">Playfair Display</option>
+                            <option value="PT Serif" class="font-option font-pt-serif">PT Serif</option>
+                            <option value="Noto Serif" class="font-option font-noto-serif">Noto Serif</option>
+                        </select>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 8px;">Размер шрифта по умолчанию</h3>
+                        <select class="format-select font-size-select" id="defaultFontSizeSelect" style="width: 100%;">
+                            <option value="10px">10px</option>
+                            <option value="12px">12px</option>
+                            <option value="14px" selected>14px</option>
+                            <option value="16px">16px</option>
+                            <option value="18px">18px</option>
+                            <option value="20px">20px</option>
+                            <option value="24px">24px</option>
+                            <option value="28px">28px</option>
+                            <option value="32px">32px</option>
+                            <option value="36px">36px</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveSettingsBtn">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Hidden file input -->
+    <input type="file" id="fileInput" accept=".txt,.html" style="display: none;">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const editor = document.getElementById('editor');
+            const formatPanel = document.getElementById('formatPanel');
+            const formatBtn = document.getElementById('formatBtn');
+            const menuBtn = document.getElementById('menuBtn');
+            const menuModal = document.getElementById('menuModal');
+            const wordCountModal = document.getElementById('wordCountModal');
+            const settingsModal = document.getElementById('settingsModal');
+            const toast = document.getElementById('toast');
+            const fileInput = document.getElementById('fileInput');
+            
+            // Format buttons
+            const boldBtn = document.getElementById('boldBtn');
+            const italicBtn = document.getElementById('italicBtn');
+            const underlineBtn = document.getElementById('underlineBtn');
+            const alignLeftBtn = document.getElementById('alignLeftBtn');
+            const alignCenterBtn = document.getElementById('alignCenterBtn');
+            const alignRightBtn = document.getElementById('alignRightBtn');
+            const bulletListBtn = document.getElementById('bulletListBtn');
+            const numberListBtn = document.getElementById('numberListBtn');
+            const fontSizeSelect = document.getElementById('fontSizeSelect');
+            const fontFamilySelect = document.getElementById('fontFamilySelect');
+            const textColorPicker = document.getElementById('textColorPicker');
+            const highlightColorPicker = document.getElementById('highlightColorPicker');
+            const increaseIndentBtn = document.getElementById('increaseIndentBtn');
+            const decreaseIndentBtn = document.getElementById('decreaseIndentBtn');
+            
+            // Menu buttons
+            const saveFileBtn = document.getElementById('saveFileBtn');
+            const loadFileBtn = document.getElementById('loadFileBtn');
+            const printBtn = document.getElementById('printBtn');
+            const shareBtn = document.getElementById('shareBtn');
+            const wordCountBtn = document.getElementById('wordCountBtn');
+            const settingsBtn = document.getElementById('settingsBtn');
+            
+            // Modal close buttons
+            const closeMenuModal = document.getElementById('closeMenuModal');
+            const closeWordCountModal = document.getElementById('closeWordCountModal');
+            const closeWordCountModalBtn = document.getElementById('closeWordCountModalBtn');
+            const closeSettingsModal = document.getElementById('closeSettingsModal');
+            const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+            
+            // Settings buttons
+            const lightThemeBtn = document.getElementById('lightThemeBtn');
+            const darkThemeBtn = document.getElementById('darkThemeBtn');
+            const autoThemeBtn = document.getElementById('autoThemeBtn');
+            const autoSaveCheckbox = document.getElementById('autoSaveCheckbox');
+            const defaultFontSizeSelect = document.getElementById('defaultFontSizeSelect');
+            const defaultFontFamilySelect = document.getElementById('defaultFontFamilySelect');
+            
+            // State
+            let isFormatPanelVisible = false;
+            let currentDocument = {
+                title: 'Новый документ',
+                content: '',
+                lastSaved: null
+            };
+            
+            // Initialize
+            initEditor();
+            
+            function initEditor() {
+                // Load settings
+                loadSettings();
+                
+                // Load last document if exists
+                const savedDoc = localStorage.getItem('lastDocument');
+                if (savedDoc) {
+                    try {
+                        const doc = JSON.parse(savedDoc);
+                        editor.innerHTML = doc.content;
+                        currentDocument = doc;
+                        updateDocumentTitle();
+                    } catch (e) {
+                        console.error('Error loading last document:', e);
+                    }
+                }
+                
+                // Set up auto-save
+                if (localStorage.getItem('autoSave') !== 'false') {
+                    setInterval(autoSave, 30000); // Auto-save every 30 seconds
+                }
+                
+                // Set up event listeners
+                setupEventListeners();
+            }
+            
+            function setupEventListeners() {
+                // Format panel toggle
+                formatBtn.addEventListener('click', toggleFormatPanel);
+                
+                // Text formatting
+                boldBtn.addEventListener('click', () => execCommand('bold'));
+                italicBtn.addEventListener('click', () => execCommand('italic'));
+                underlineBtn.addEventListener('click', () => execCommand('underline'));
+                
+                // Text alignment
+                alignLeftBtn.addEventListener('click', () => execCommand('justifyLeft'));
+                alignCenterBtn.addEventListener('click', () => execCommand('justifyCenter'));
+                alignRightBtn.addEventListener('click', () => execCommand('justifyRight'));
+                
+                // Lists
+                bulletListBtn.addEventListener('click', () => execCommand('insertUnorderedList'));
+                numberListBtn.addEventListener('click', () => execCommand('insertOrderedList'));
+                
+                // Font size and family
+                fontSizeSelect.addEventListener('change', () => {
+                    const size = fontSizeSelect.value;
+                    execCommand('fontSize', false, '7'); // Reset to largest size
+                    document.execCommand('styleWithCSS', false, true);
+                    document.execCommand('fontSize', false, '1');
+                    const fontElements = document.getElementsByTagName('font');
+                    for (let i = 0, len = fontElements.length; i < len; i++) {
+                        if (fontElements[i].size === '1') {
+                            fontElements[i].removeAttribute('size');
+                            fontElements[i].style.fontSize = size;
+                        }
+                    }
+                    editor.style.fontSize = size;
+                    updateCurrentDocument();
+                });
+                
+                fontFamilySelect.addEventListener('change', () => {
+                    const font = fontFamilySelect.value;
+                    execCommand('fontName', false, font);
+                });
+                
+                // Colors
+                textColorPicker.addEventListener('change', () => {
+                    execCommand('foreColor', false, textColorPicker.value);
+                });
+                
+                highlightColorPicker.addEventListener('change', () => {
+                    execCommand('hiliteColor', false, highlightColorPicker.value);
+                });
+                
+                // Indentation
+                increaseIndentBtn.addEventListener('click', () => execCommand('indent'));
+                decreaseIndentBtn.addEventListener('click', () => execCommand('outdent'));
+                
+                // Menu
+                menuBtn.addEventListener('click', () => menuModal.classList.add('active'));
+                closeMenuModal.addEventListener('click', () => menuModal.classList.remove('active'));
+                
+                // File operations
+                saveFileBtn.addEventListener('click', saveToFile);
+                loadFileBtn.addEventListener('click', () => fileInput.click());
+                fileInput.addEventListener('change', loadFromFile);
+                
+                // Other menu options
+                printBtn.addEventListener('click', printDocument);
+                shareBtn.addEventListener('click', shareDocument);
+                wordCountBtn.addEventListener('click', showWordCount);
+                settingsBtn.addEventListener('click', () => settingsModal.classList.add('active'));
+                
+                // Word count modal
+                closeWordCountModal.addEventListener('click', () => wordCountModal.classList.remove('active'));
+                closeWordCountModalBtn.addEventListener('click', () => wordCountModal.classList.remove('active'));
+                
+                // Settings modal
+                closeSettingsModal.addEventListener('click', () => settingsModal.classList.remove('active'));
+                saveSettingsBtn.addEventListener('click', saveSettings);
+                
+                // Theme buttons
+                lightThemeBtn.addEventListener('click', () => setTheme('light'));
+                darkThemeBtn.addEventListener('click', () => setTheme('dark'));
+                autoThemeBtn.addEventListener('click', () => setTheme('auto'));
+                
+                // Editor events
+                editor.addEventListener('input', updateCurrentDocument);
+                editor.addEventListener('keydown', handleTabKey);
+                
+                // Update format buttons state based on selection
+                document.addEventListener('selectionchange', updateFormatButtons);
+            }
+            
+            function toggleFormatPanel() {
+                isFormatPanelVisible = !isFormatPanelVisible;
+                formatPanel.classList.toggle('active', isFormatPanelVisible);
+                formatBtn.classList.toggle('active', isFormatPanelVisible);
+            }
+            
+            function execCommand(command, showUI = false, value = null) {
+                document.execCommand(command, showUI, value);
+                editor.focus();
+                updateCurrentDocument();
+            }
+            
+            function updateFormatButtons() {
+                // This would update the state of format buttons based on current selection
+                // For simplicity, we're not implementing the full functionality here
+            }
+            
+            function updateCurrentDocument() {
+                currentDocument.content = editor.innerHTML;
+                currentDocument.lastSaved = new Date();
+                localStorage.setItem('lastDocument', JSON.stringify(currentDocument));
+            }
+            
+            function autoSave() {
+                if (localStorage.getItem('autoSave') !== 'false') {
+                    updateCurrentDocument();
+                    showToast('Автосохранение выполнено');
+                }
+            }
+            
+            function saveToFile() {
+                const content = editor.innerText || editor.textContent;
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentDocument.title + '.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showToast('Файл сохранен');
+            }
+            
+            function loadFromFile(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editor.innerHTML = e.target.result;
+                    currentDocument.title = file.name.replace(/\.[^/.]+$/, "");
+                    updateDocumentTitle();
+                    updateCurrentDocument();
+                    showToast('Файл загружен');
+                };
+                reader.readAsText(file);
+                
+                // Reset file input
+                event.target.value = '';
+            }
+            
+            function printDocument() {
+                window.print();
+            }
+            
+            function shareDocument() {
+                if (navigator.share) {
+                    navigator.share({
+                        title: currentDocument.title,
+                        text: editor.innerText || editor.textContent,
+                        url: window.location.href
+                    })
+                    .then(() => showToast('Документ успешно отправлен'))
+                    .catch(error => console.log('Error sharing:', error));
+                } else {
+                    // Fallback for browsers that don't support the Web Share API
+                    const textArea = document.createElement('textarea');
+                    textArea.value = editor.innerText || editor.textContent;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast('Текст скопирован в буфер обмена');
+                }
+            }
+            
+            function showWordCount() {
+                const text = editor.innerText || editor.textContent;
+                const charCount = text.length;
+                const charNoSpacesCount = text.replace(/\s/g, '').length;
+                const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+                const lineCount = text.split(/\r\n|\r|\n/).length;
+                const paragraphCount = text.split(/\n\s*\n/).length;
+                
+                document.getElementById('charCount').textContent = charCount;
+                document.getElementById('charNoSpacesCount').textContent = charNoSpacesCount;
+                document.getElementById('wordCount').textContent = wordCount;
+                document.getElementById('lineCount').textContent = lineCount;
+                document.getElementById('paragraphCount').textContent = paragraphCount;
+                
+                menuModal.classList.remove('active');
+                wordCountModal.classList.add('active');
+            }
+            
+            function updateDocumentTitle() {
+                document.getElementById('documentTitle').textContent = currentDocument.title;
+            }
+            
+            function handleTabKey(e) {
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    execCommand('indent');
+                }
+            }
+            
+            function showToast(message) {
+                toast.textContent = message;
+                toast.classList.add('active');
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 3000);
+            }
+            
+            function loadSettings() {
+                const theme = localStorage.getItem('theme') || 'auto';
+                setTheme(theme);
+                
+                const autoSave = localStorage.getItem('autoSave');
+                if (autoSave !== null) {
+                    autoSaveCheckbox.checked = autoSave === 'true';
+                }
+                
+                const defaultFontSize = localStorage.getItem('defaultFontSize') || '14px';
+                defaultFontSizeSelect.value = defaultFontSize;
+                fontSizeSelect.value = defaultFontSize;
+                editor.style.fontSize = defaultFontSize;
+                
+                const defaultFontFamily = localStorage.getItem('defaultFontFamily') || 'Helvetica';
+                defaultFontFamilySelect.value = defaultFontFamily;
+                fontFamilySelect.value = defaultFontFamily;
+                editor.style.fontFamily = defaultFontFamily;
+            }
+            
+            function saveSettings() {
+                localStorage.setItem('autoSave', autoSaveCheckbox.checked);
+                localStorage.setItem('defaultFontSize', defaultFontSizeSelect.value);
+                localStorage.setItem('defaultFontFamily', defaultFontFamilySelect.value);
+                
+                // Apply new default settings
+                editor.style.fontSize = defaultFontSizeSelect.value;
+                editor.style.fontFamily = defaultFontFamilySelect.value;
+                
+                settingsModal.classList.remove('active');
+                showToast('Настройки сохранены');
+            }
+            
+            function setTheme(theme) {
+                localStorage.setItem('theme', theme);
+                
+                if (theme === 'light' || (theme === 'auto' && window.matchMedia('(prefers-color-scheme: light)').matches)) {
+                    document.documentElement.style.setProperty('--bg-color', '#F2F2F7');
+                    document.documentElement.style.setProperty('--surface-color', '#FFFFFF');
+                    document.documentElement.style.setProperty('--text-primary', '#000000');
+                    document.documentElement.style.setProperty('--text-secondary', '#8E8E93');
+                    document.documentElement.style.setProperty('--border-color', '#C6C6C8');
+                } else {
+                    document.documentElement.style.setProperty('--bg-color', '#000000');
+                    document.documentElement.style.setProperty('--surface-color', '#1C1C1E');
+                    document.documentElement.style.setProperty('--text-primary', '#FFFFFF');
+                    document.documentElement.style.setProperty('--text-secondary', '#8E8E93');
+                    document.documentElement.style.setProperty('--border-color', '#38383A');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
